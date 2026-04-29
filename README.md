@@ -4,7 +4,7 @@ A simple, accurate, and transparent gratuity calculator for Odisha State Governm
 
 ## 🔗 Live Demo
 
-https://YOUR-USERNAME.github.io/gratuity-calculator-odisha/
+https://11sid11.github.io/gratuity-calculator-odisha/
 
 ## 📌 Features
 
