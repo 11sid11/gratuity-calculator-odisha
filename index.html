@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Odisha OCS Gratuity Calculator</title>
+  <meta name="description" content="Static gratuity calculator for Odisha State Government employees under OCS Pension Rules, 1992.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-copy">
+      <p class="eyebrow">Odisha Civil Services (Pension) Rules, 1992</p>
+      <h1>Gratuity calculator for Odisha State Government employees</h1>
+      <p class="intro">
+        Estimate retirement gratuity, death gratuity, or service gratuity from last pay, DA, and qualifying service. The calculator shows the formula trail so the numbers are easy to audit.
+      </p>
+    </div>
+    <img class="header-art" src="assets/gratuity-visual.svg" alt="Ledger and calculator illustration">
+  </header>
+
+  <main class="layout">
+    <section class="panel input-panel" aria-labelledby="calculator-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Calculator</p>
+          <h2 id="calculator-title">Enter employee details</h2>
+        </div>
+        <button class="icon-button" id="resetButton" type="button" title="Reset calculator" aria-label="Reset calculator">Reset</button>
+      </div>
+
+      <form id="gratuityForm" novalidate>
+        <fieldset>
+          <legend>Benefit type</legend>
+          <div class="segmented" role="radiogroup" aria-label="Benefit type">
+            <label>
+              <input type="radio" name="benefitType" value="retirement" checked>
+              <span>Retirement</span>
+            </label>
+            <label>
+              <input type="radio" name="benefitType" value="death">
+              <span>Death</span>
+            </label>
+            <label>
+              <input type="radio" name="benefitType" value="service">
+              <span>Service</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Retirement, death, or benefit date</span>
+            <input id="benefitDate" type="date">
+          </label>
+          <label class="field">
+            <span>DCRG ceiling</span>
+            <select id="ceilingMode">
+              <option value="auto" selected>Auto by date</option>
+              <option value="250000">Rs. 2.50 lakh</option>
+              <option value="750000">Rs. 7.50 lakh</option>
+              <option value="1500000">Rs. 15.00 lakh</option>
+              <option value="2000000">Rs. 20.00 lakh</option>
+              <option value="custom">Custom ceiling</option>
+              <option value="none">No ceiling</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field custom-ceiling is-hidden" id="customCeilingWrap">
+          <span>Custom ceiling amount</span>
+          <input id="customCeiling" type="number" min="0" step="1" inputmode="decimal" placeholder="Example: 2000000">
+        </label>
+
+        <fieldset>
+          <legend>Emoluments</legend>
+          <div class="field-grid three">
+            <label class="field">
+              <span>Last basic pay</span>
+              <input id="basicPay" type="number" min="0" step="1" inputmode="decimal" placeholder="Example: 65000">
+            </label>
+            <label class="field">
+              <span>Other pay counted as pay</span>
+              <input id="otherPay" type="number" min="0" step="1" inputmode="decimal" placeholder="0">
+            </label>
+            <label class="field">
+              <span>DA rate (%)</span>
+              <input id="daRate" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Example: 50">
+            </label>
+          </div>
+
+          <div class="switch-row">
+            <label class="switch">
+              <input id="includeDa" type="checkbox" checked>
+              <span>Include Dearness Allowance in gratuity emoluments</span>
+            </label>
+          </div>
+
+          <details class="advanced">
+            <summary>Adjust DA amount manually</summary>
+            <div class="field-grid two nested-fields">
+              <label class="switch">
+                <input id="manualDa" type="checkbox">
+                <span>Use manual DA amount</span>
+              </label>
+              <label class="field">
+                <span>Manual DA amount</span>
+                <input id="manualDaAmount" type="number" min="0" step="1" inputmode="decimal" placeholder="0">
+              </label>
+            </div>
+          </details>
+        </fieldset>
+
+        <fieldset>
+          <legend>Qualifying service</legend>
+          <div class="field-grid three">
+            <label class="field">
+              <span>Years</span>
+              <input id="serviceYears" type="number" min="0" max="80" step="1" inputmode="numeric" placeholder="Example: 30">
+            </label>
+            <label class="field">
+              <span>Months</span>
+              <input id="serviceMonths" type="number" min="0" max="11" step="1" inputmode="numeric" placeholder="0 to 11">
+            </label>
+            <label class="field">
+              <span>Sanctioned extra half-years</span>
+              <input id="extraHalfYears" type="number" min="0" max="10" step="1" inputmode="numeric" placeholder="0">
+            </label>
+          </div>
+
+          <details class="advanced">
+            <summary>Use official completed half-years</summary>
+            <label class="field nested-field">
+              <span>Official completed six-monthly periods</span>
+              <input id="manualHalfYears" type="number" min="0" max="80" step="1" inputmode="numeric" placeholder="Leave blank to auto-calculate">
+            </label>
+          </details>
+        </fieldset>
+      </form>
+    </section>
+
+    <aside class="panel result-panel" aria-live="polite">
+      <p class="eyebrow">Estimated payable amount</p>
+      <output id="resultAmount" class="amount" for="basicPay otherPay daRate serviceYears serviceMonths">Rs. 0</output>
+      <p id="resultSubtitle" class="result-subtitle">Enter pay and qualifying service to calculate.</p>
+
+      <dl class="result-grid">
+        <div>
+          <dt>Emoluments used</dt>
+          <dd id="emolumentsOut">Rs. 0</dd>
+        </div>
+        <div>
+          <dt>Completed half-years</dt>
+          <dd id="halfYearsOut">0</dd>
+        </div>
+        <div>
+          <dt>Formula multiplier</dt>
+          <dd id="factorOut">0x</dd>
+        </div>
+        <div>
+          <dt>Ceiling used</dt>
+          <dd id="ceilingOut">Rs. 20.00 lakh</dd>
+        </div>
+        <div>
+          <dt>Before ceiling</dt>
+          <dd id="grossOut">Rs. 0</dd>
+        </div>
+        <div>
+          <dt>Ceiling reduction</dt>
+          <dd id="reductionOut">Rs. 0</dd>
+        </div>
+      </dl>
+
+      <div class="formula-box">
+        <h2>Formula trail</h2>
+        <p id="formulaText">Choose values to see the applicable OCS formula.</p>
+      </div>
+
+      <ul id="warnings" class="warnings" aria-label="Calculation notes"></ul>
+
+      <button class="print-button" type="button" id="printButton">Print result</button>
+    </aside>
+  </main>
+
+  <section class="rule-strip" aria-labelledby="rules-title">
+    <div class="section-heading narrow">
+      <div>
+        <p class="eyebrow">Rule notes</p>
+        <h2 id="rules-title">What this calculator applies</h2>
+      </div>
+    </div>
+    <div class="rule-list">
+      <article>
+        <h3>Retirement gratuity</h3>
+        <p>1/4 of last emoluments for each completed six-monthly period, capped at 16.5 times emoluments and the applicable DCRG ceiling.</p>
+      </article>
+      <article>
+        <h3>Death gratuity</h3>
+        <p>Slab based: 2x, 6x, 12x, 20x, or half-month emoluments per half-year after 20 years, capped at 33x and the DCRG ceiling.</p>
+      </article>
+      <article>
+        <h3>Service gratuity</h3>
+        <p>For retirement before minimum pensionable service: half month's emoluments for each completed six-monthly period. Verify eligibility from the service book.</p>
+      </article>
+      <article>
+        <h3>Date-based ceiling</h3>
+        <p>Auto mode uses Rs. 2.5 lakh before 2006, Rs. 7.5 lakh from 2006, Rs. 15 lakh from 2016, and Rs. 20 lakh from 01.01.2024.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="sources" aria-labelledby="sources-title">
+    <div>
+      <p class="eyebrow">Sources</p>
+      <h2 id="sources-title">Official references used</h2>
+    </div>
+    <ul>
+      <li><a href="https://finance.odisha.gov.in/sites/default/files/2020-02/Pension_Rule-1992.pdf">Odisha Civil Services (Pension) Rules, 1992, Finance Department PDF</a></li>
+      <li><a href="https://finance.odisha.gov.in/sites/default/files/finance_circulars/26342.pdf">Finance Department Resolution No. 26342/F, Revised Scales of Pay, 2017</a></li>
+      <li><a href="https://finance.odisha.gov.in/sites/default/files/2024-10/28624.pdf">Finance Department 2024 DCRG ceiling enhancement to Rs. 20 lakh</a></li>
+      <li><a href="https://caodisha.nic.in/faq_pension.php">Controller of Accounts, Odisha pension FAQ</a></li>
+    </ul>
+    <p class="disclaimer">This is an estimator, not an official sanction. Use the employee's service book, pay records, nomination records, and the latest Finance Department orders for final processing.</p>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>
